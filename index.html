@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="スライド資料">
+  <title>Gemini新機能『スキル』</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #000;
+      --muted: #404040;
+      --paper: #fff;
+      --off: #faf9f5;
+      
+      /* 画像と連動したグリーンパレット */
+      --green-dark: #07311b;    /* 文字・見出しの深緑（数字など） */
+      --green-accent: #62d49e;  /* プログレスバー・アクセント線の爽やかなミントグリーン */
+      --green-line: #a8e7cb;    /* サイドバー境界線の淡いグリーン線 */
+      --green-soft: #edf9f3;    /* ホバー時・選択時の極淡いミント背景 */
+      
+      --rail: 232px;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--off);
+      color: var(--ink);
+      font-family: "Noto Sans JP", "Yu Gothic", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      font-weight: 400;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, a {
+      font: inherit;
+    }
+    button {
+      cursor: pointer;
+    }
+    a {
+      color: inherit;
+    }
+    :focus-visible {
+      outline: 3px solid var(--green-accent);
+      outline-offset: 4px;
+    }
+    ::selection {
+      background: var(--green-accent);
+      color: #fff;
+    }
+
+    /* 進行バー */
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 120;
+      width: 10%;
+      height: 4px;
+      background: var(--green-accent);
+    }
+
+    /* 左サイドバー */
+    .rail {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 100;
+      width: var(--rail);
+      padding: 34px 20px 26px;
+      border-right: 1px solid var(--green-dark);
+      background: var(--paper);
+      display: flex;
+      flex-direction: column;
+      transition: transform .2s ease;
+      overflow-y: auto;
+    }
+    .rail-toggle {
+      position: fixed;
+      z-index: 101;
+      top: 50%;
+      left: var(--rail);
+      transform: translateY(-50%);
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 56px;
+      padding: 0;
+      border: 2px solid var(--green-dark);
+      border-left: 0;
+      background: var(--paper);
+      color: var(--green-dark);
+      transition: left .2s ease, background .15s ease;
+    }
+    .rail-toggle:hover {
+      background: var(--green-soft);
+    }
+    .rail-toggle span {
+      font: 500 32px/1 "Outfit", sans-serif;
+      transform: translateY(-2px);
+    }
+    body.rail-collapsed .rail {
+      transform: translateX(-100%);
+    }
+    body.rail-collapsed .rail-toggle {
+      left: 0;
+    }
+
+    .rail-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .rail-brand small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .04em;
+    }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      background: var(--ink);
+      color: #fff;
+      font: 700 16px/1 "Outfit", sans-serif;
+      flex: none;
+    }
+    .rail-caption {
+      margin: 32px 0 14px;
+      font: 600 11px/1 "Outfit", sans-serif;
+      letter-spacing: .2em;
+      color: var(--muted);
+    }
+    .rail-links {
+      display: grid;
+      gap: 3px;
+    }
+    .rail-links a {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      min-height: 40px;
+      padding: 6px 10px;
+      border-left: 3px solid transparent;
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .rail-links a span {
+      font: 700 13px/1 "Outfit", sans-serif;
+      letter-spacing: .05em;
+      color: var(--green-dark);
+      width: 22px;
+      flex: none;
+    }
+    .rail-links a:hover,
+    .rail-links a.is-current {
+      background: var(--green-soft);
+      color: var(--green-dark);
+      border-color: var(--green-accent);
+    }
+
+    /* モバイルヘッダー */
+    .mobile-header {
+      display: none;
+    }
+
+    /* メインスライド表示領域 */
+    main {
+      margin-left: var(--rail);
+      height: 100svh;
+      overflow: hidden;
+      transition: margin-left .2s ease;
+    }
+    body.rail-collapsed main {
+      margin-left: 0;
+    }
+
+    .page {
+      display: none;
+      width: 100%;
+      height: 100svh;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      margin: 0;
+      background: #fff;
+    }
+    .page.is-current {
+      display: flex;
+    }
+
+    .slide-frame {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .slide-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* 右下のページ操作パネル */
+    .page-controls {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      background: var(--paper);
+      border: 2px solid var(--green-dark);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+    .page-controls button {
+      min-width: 80px;
+      min-height: 48px;
+      padding: 0 16px;
+      border: 0;
+      background: var(--paper);
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--green-dark);
+      transition: background .15s;
+    }
+    .page-controls button:hover:not(:disabled) {
+      background: var(--green-soft);
+    }
+    .page-controls button:disabled {
+      color: #9ba7af;
+      cursor: not-allowed;
+    }
+    .page-controls span#page-count {
+      min-width: 84px;
+      text-align: center;
+      font: 600 14px/1 "Outfit", sans-serif;
+      letter-spacing: .05em;
+      color: var(--green-dark);
+      border-left: 1px solid rgba(7, 49, 27, 0.2);
+      border-right: 1px solid rgba(7, 49, 27, 0.2);
+      line-height: 48px;
+    }
+
+    /* レスポンシブ対応 */
+    @media (max-width: 1023px) {
+      :root {
+        --rail: 0px;
+      }
+      .rail, .rail-toggle {
+        display: none;
+      }
+      .mobile-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 105;
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 18px;
+        background: #fff;
+        border-bottom: 1px solid var(--green-dark);
+        color: var(--green-dark);
+      }
+      .mobile-brand {
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--green-dark);
+      }
+      .mobile-menu {
+        position: relative;
+      }
+      .mobile-menu summary {
+        display: grid;
+        place-items: center;
+        min-height: 40px;
+        min-width: 50px;
+        cursor: pointer;
+        font-weight: 700;
+        list-style: none;
+        color: var(--green-dark);
+      }
+      .mobile-menu summary::-webkit-details-marker {
+        display: none;
+      }
+      .mobile-menu nav {
+        position: absolute;
+        right: 0;
+        top: 44px;
+        min-width: 190px;
+        display: grid;
+        border: 2px solid var(--green-dark);
+        background: #fff;
+        max-height: 70vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      }
+      .mobile-menu nav a {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--green-line);
+        text-decoration: none;
+        font-size: 13px;
+        color: var(--ink);
+      }
+      .mobile-menu nav a:hover {
+        background: var(--green-soft);
+        color: var(--green-dark);
+      }
+      .mobile-menu nav a:last-child {
+        border: 0;
+      }
+      main {
+        margin-left: 0;
+        height: 100svh;
+      }
+      .page {
+        padding: 56px 0 60px;
+        background: #fff;
+      }
+      .slide-frame {
+        max-height: none;
+      }
+      .page-controls {
+        right: 14px;
+        bottom: 14px;
+      }
+      .page-controls button {
+        min-width: 60px;
+        min-height: 42px;
+        padding: 0 10px;
+      }
+      .page-controls span#page-count {
+        min-width: 72px;
+        line-height: 42px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress" aria-hidden="true"></div>
+
+  <!-- 左サイドバー -->
+  <aside class="rail" id="sidebar" aria-label="スライド目次">
+    <a class="rail-brand" href="#s1"><span>Gemini新機能『スキル』</span></a>
+    <p class="rail-caption">CONTENTS</p>
+    <nav class="rail-links">
+      <a href="#s1" data-index="0" class="is-current"><span>01</span> はじめに</a>
+      <a href="#s2" data-index="1"><span>02</span> なぜ今？大切な変更点</a>
+      <a href="#s3" data-index="2"><span>03</span> 3種類のスキル</a>
+      <a href="#s4" data-index="3"><span>04</span> 会話から直接保存</a>
+      <a href="#s5" data-index="4"><span>05</span> 2つの呼び出し方</a>
+      <a href="#s6" data-index="5"><span>06</span> スキルの組み合わせ</a>
+      <a href="#s7" data-index="6"><span>07</span> スキルを人に渡す</a>
+      <a href="#s8" data-index="7"><span>08</span> 使いこなす3つのコツ</a>
+      <a href="#s9" data-index="8"><span>09</span> 移行とバックアップ</a>
+      <a href="#s10" data-index="9"><span>10</span> まとめ</a>
+    </nav>
+  </aside>
+  <button class="rail-toggle" id="railToggle" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="左メニューを閉じる"><span aria-hidden="true">‹</span></button>
+
+  <!-- モバイル用ヘッダー -->
+  <header class="mobile-header">
+    <a class="mobile-brand" href="#s1">Gemini新機能『スキル』</a>
+    <details class="mobile-menu" id="mobileMenu">
+      <summary>目次 ☰</summary>
+      <nav aria-label="モバイル目次">
+        <a href="#s1" data-index="0">01 はじめに</a>
+        <a href="#s2" data-index="1">02 なぜ今？大切な変更点</a>
+        <a href="#s3" data-index="2">03 3種類のスキル</a>
+        <a href="#s4" data-index="3">04 会話から直接保存</a>
+        <a href="#s5" data-index="4">05 2つの呼び出し方</a>
+        <a href="#s6" data-index="5">06 スキルの組み合わせ</a>
+        <a href="#s7" data-index="6">07 スキルを人に渡す</a>
+        <a href="#s8" data-index="7">08 使いこなす3つのコツ</a>
+        <a href="#s9" data-index="8">09 移行とバックアップ</a>
+        <a href="#s10" data-index="9">10 まとめ</a>
+      </nav>
+    </details>
+  </header>
+
+  <!-- スライド本体（横並び） -->
+  <main id="main">
+    <section class="page" id="s1">
+      <div class="slide-frame">
+        <img src="1.jpg" alt="スライド 01" width="2752" height="1536" loading="eager">
+      </div>
+    </section>
+    <section class="page" id="s2">
+      <div class="slide-frame">
+        <img src="2.jpg" alt="スライド 02" width="2752" height="1536" loading="lazy">
+      </div>
+    </section>
+    <section class="page" id="s3">
+      <div class="slide-frame">
+        <img src="3.jpg" alt="スライド 03" width="2752" height="1536" loading="lazy">
+      </div>
+    </section>
+    <section class="page" id="s4">
+      <div class="slide-frame">
+        <img src="4.jpg" alt="スライド 04" width="2752" height="1536" loading="lazy">
+      </div>
+    </section>
+    <section class="page" id="s5">
+      <div class="slide-frame">
+        <img src="5.jpg" alt="スライド 05" width="2752" height="1536" loading="lazy">
+      </div>
+    </section>
+    <section class="page" id="s6">
+      <div class="slide-frame">
+        <img src="6.jpg" alt="スライド 06" width="2752" height="1536" loading="lazy">
+      </div>
+    </section>
+    <section class="page" id="s7">
+      <div class="slide-frame">
+        <img src="7.jpg" alt="スライド 07" width="2752" height="1536" loading="lazy">
+      </div>
+    </section>
+    <section class="page" id="s8">
+      <div class="slide-frame">
+        <img src="8.jpg" alt="スライド 08" width="2752" height="1536" loading="lazy">
+      </div>
+    </section>
+    <section class="page" id="s9">
+      <div class="slide-frame">
+        <img src="9.jpg" alt="スライド 09" width="2752" height="1536" loading="lazy">
+      </div>
+    </section>
+    <section class="page" id="s10">
+      <div class="slide-frame">
+        <img src="10.jpg" alt="スライド 10" width="2752" height="1536" loading="lazy">
+      </div>
+    </section>
+  </main>
+
+  <!-- ページ操作コントローラー -->
+  <div class="page-controls" aria-label="ページ操作">
+    <button id="prev" type="button" aria-label="前のページへ">← 前へ</button>
+    <span id="page-count" aria-live="polite">01 / 10</span>
+    <button id="next" type="button" aria-label="次のページへ">次へ →</button>
+  </div>
+
+  <script>
+    const main = document.querySelector('#main');
+    const pages = [...document.querySelectorAll('.page')];
+    const progress = document.querySelector('#progress');
+    const pageCount = document.querySelector('#page-count');
+    const rail = document.querySelector('#sidebar');
+    const railToggle = document.querySelector('#railToggle');
+    const previous = document.querySelector('#prev');
+    const next = document.querySelector('#next');
+    const railLinks = [...document.querySelectorAll('.rail-links a')];
+    const mobileLinks = [...document.querySelectorAll('.mobile-menu nav a')];
+    const mobileMenu = document.querySelector('#mobileMenu');
+    let currentIndex = 0;
+
+    // 左サイドバー開閉トグル
+    railToggle.addEventListener('click', () => {
+      const collapsed = document.body.classList.toggle('rail-collapsed');
+      rail.inert = collapsed;
+      railToggle.setAttribute('aria-expanded', String(!collapsed));
+      railToggle.setAttribute('aria-label', collapsed ? '左メニューを開く' : '左メニューを閉じる');
+      railToggle.querySelector('span').textContent = collapsed ? '›' : '‹';
+    });
+
+    // スライド切り替え（現在スライドのみ表示・チラつきゼロ）
+    function showIndex(index) {
+      currentIndex = Math.max(0, Math.min(index, pages.length - 1));
+      
+      // 現在のスライドのみ表示
+      pages.forEach((page, i) => {
+        page.classList.toggle('is-current', i === currentIndex);
+      });
+
+      // ページ番号とプログレス表示更新
+      const label = `${String(currentIndex + 1).padStart(2, '0')} / ${String(pages.length).padStart(2, '0')}`;
+      pageCount.textContent = label;
+      previous.disabled = currentIndex === 0;
+      next.disabled = currentIndex === pages.length - 1;
+      progress.style.width = `${((currentIndex + 1) / pages.length) * 100}%`;
+
+      // サイドバーのアクティブ表示更新
+      railLinks.forEach((link, idx) => {
+        const active = idx === currentIndex;
+        link.classList.toggle('is-current', active);
+        if (active) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
+    }
+
+    // 前へ / 次へ ボタン
+    previous.addEventListener('click', () => showIndex(currentIndex - 1));
+    next.addEventListener('click', () => showIndex(currentIndex + 1));
+
+    // サイドバーの目次クリック
+    railLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const index = parseInt(link.dataset.index, 10);
+        showIndex(index);
+      });
+    });
+
+    // モバイル目次クリック
+    mobileLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const index = parseInt(link.dataset.index, 10);
+        showIndex(index);
+        if (mobileMenu) mobileMenu.open = false;
+      });
+    });
+
+    // キーボード操作（← / → / PageUp / PageDown）
+    window.addEventListener('keydown', event => {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      if (event.target.closest('a, button, input, textarea, select, summary')) return;
+      if (event.key === 'ArrowRight' || event.key === 'PageDown') {
+        event.preventDefault();
+        showIndex(currentIndex + 1);
+      } else if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
+        event.preventDefault();
+        showIndex(currentIndex - 1);
+      }
+    });
+
+    // 初期表示
+    showIndex(0);
+  </script>
+</body>
+</html>
+
