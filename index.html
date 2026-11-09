@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="スライド資料">
   <title>Gemini新機能『スキル』</title>
+  <link rel="icon" type="image/png" href="favicon-co9.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
@@ -175,6 +176,46 @@
       background: var(--green-soft);
       color: var(--green-dark);
       border-color: var(--green-accent);
+    }
+
+    /* サイドバー下部ロゴ */
+    .rail-bottom {
+      margin-top: auto;
+      padding-top: 18px;
+      border-top: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .rail-logo-link {
+      display: inline-block;
+      line-height: 0;
+      transition: opacity .15s ease;
+    }
+    .rail-logo-link:hover {
+      opacity: 0.7;
+    }
+    .rail-logo {
+      width: 53px;
+      height: auto;
+      display: block;
+    }
+    .rail-copy {
+      font-family: "Outfit", "Noto Sans JP", sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: #9c9c9c;
+      white-space: nowrap;
+    }
+    .mobile-logo-wrap {
+      padding: 16px 14px;
+      border-top: none;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
     }
 
     /* モバイルヘッダー */
@@ -382,6 +423,12 @@
       <a href="#s9" data-index="8"><span>09</span> 移行とバックアップ</a>
       <a href="#s10" data-index="9"><span>10</span> まとめ</a>
     </nav>
+    <div class="rail-bottom">
+      <a href="https://co9co9.com/" target="_blank" rel="noopener noreferrer" class="rail-logo-link" aria-label="co9co9 ホームページへ">
+        <img src="logo-co9.svg" alt="co9" class="rail-logo" width="857" height="336">
+      </a>
+      <small class="rail-copy">&copy; 2026 深森呼吸</small>
+    </div>
   </aside>
   <button class="rail-toggle" id="railToggle" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="左メニューを閉じる"><span aria-hidden="true">‹</span></button>
 
@@ -401,6 +448,12 @@
         <a href="#s8" data-index="7">08 使いこなす3つのコツ</a>
         <a href="#s9" data-index="8">09 移行とバックアップ</a>
         <a href="#s10" data-index="9">10 まとめ</a>
+        <div class="mobile-logo-wrap">
+          <a href="https://co9co9.com/" target="_blank" rel="noopener noreferrer" class="rail-logo-link" aria-label="co9co9 ホームページへ">
+            <img src="logo-co9.svg" alt="co9" class="rail-logo" width="857" height="336">
+          </a>
+          <small class="rail-copy">&copy; 2026 深森呼吸</small>
+        </div>
       </nav>
     </details>
   </header>
